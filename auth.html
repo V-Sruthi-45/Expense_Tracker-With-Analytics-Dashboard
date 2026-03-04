@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Signup - Expense Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .page { display: none; }
+        .page.active { display: block; }
+        
+        /* Glossy UI Styles */
+        .glossy-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 
+                0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                0 10px 10px -5px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glossy-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .glossy-card:hover::before {
+            left: 100%;
+        }
+        
+        .glossy-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            box-shadow: 
+                0 10px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .glossy-button {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: none;
+            color: white;
+            box-shadow: 
+                0 10px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glossy-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 15px 25px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        .glossy-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .glossy-button:hover::before {
+            left: 100%;
+        }
+        
+        .glossy-input {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .glossy-input:focus {
+            border-color: #1e293b;
+            box-shadow: 
+                0 0 0 3px rgba(30, 41, 59, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .glossy-oauth {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+        
+        .glossy-oauth:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .loading-spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #1e293b;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-shake {
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <!-- Header -->
+    <header class="glossy-header shadow-lg border-b border-white/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-white flex items-center">
+                        <span class="mr-2">💰</span> Expense Tracker
+                    </h1>
+                </div>
+                <nav class="flex space-x-8">
+                    <button onclick="showPage('login')" class="nav-btn glossy-nav-btn text-white/90 hover:text-white px-4 py-2 text-sm font-medium rounded-lg">Login</button>
+                    <button onclick="showPage('signup')" class="nav-btn glossy-nav-btn text-white/90 hover:text-white px-4 py-2 text-sm font-medium rounded-lg">Signup</button>
+                    <a href="index.html" class="nav-btn glossy-nav-btn text-white/90 hover:text-white px-4 py-2 text-sm font-medium rounded-lg">Dashboard</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <main class="min-h-screen flex items-center justify-center p-4">
+        <!-- Login Page -->
+        <div id="login" class="page active">
+            <div class="w-full max-w-md glossy-card rounded-2xl shadow-xl overflow-hidden">
+                <div class="p-8">
+                    <div class="text-center mb-8">
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Welcome back</h1>
+                        <p class="text-gray-600">Sign in to your account to continue</p>
+                    </div>
+
+                    <form id="login-form" class="space-y-4">
+                        <div class="space-y-2">
+                            <label for="login-email" class="block text-sm font-medium text-gray-700">Email or Username</label>
+                            <input
+                                type="text"
+                                id="login-email"
+                                class="glossy-input w-full px-4 py-3 rounded-xl"
+                                placeholder="Enter your email or username"
+                                required
+                            />
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="flex items-center justify-between">
+                                <label for="login-password" class="block text-sm font-medium text-gray-700">Password</label>
+                                <a href="#" class="text-sm font-medium text-blue-600 hover:underline">Forgot password?</a>
+                            </div>
+                            <div class="relative">
+                                <input
+                                    type="password"
+                                    id="login-password"
+                                    class="glossy-input w-full px-4 py-3 pr-10 rounded-xl"
+                                    placeholder="••••••"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                    onclick="togglePassword('login-password')"
+                                >
+                                    <svg id="login-password-icon" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S4.057 16.943 2.458 12z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center space-x-2">
+                            <input
+                                type="checkbox"
+                                id="remember-me"
+                                class="h-4 w-4 rounded border border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                            <label
+                                for="remember-me"
+                                class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            >
+                                Remember me
+                            </label>
+                        </div>
+
+                        <button type="submit" class="glossy-button w-full py-3 rounded-xl font-semibold">
+                            <span id="login-button-text">Sign In</span>
+                            <div id="login-spinner" class="loading-spinner mx-auto hidden"></div>
+                        </button>
+                    </form>
+
+                    <!-- OAuth Sign In Options -->
+                    <div class="mt-6">
+                        <div class="relative">
+                            <div class="absolute inset-0 flex items-center">
+                                <span class="w-full border-t"></span>
+                            </div>
+                            <div class="relative flex justify-center text-xs uppercase">
+                                <span class="bg-background px-2 text-gray-500">Or continue with</span>
+                            </div>
+                        </div>
+
+                        <div class="mt-4 grid grid-cols-2 gap-3">
+                            <button
+                                type="button"
+                                class="glossy-oauth py-2 rounded-lg flex items-center justify-center"
+                                onclick="oauthLogin('google')"
+                            >
+                                <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"></path>
+                                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"></path>
+                                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"></path>
+                                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"></path>
+                                </svg>
+                                Google
+                            </button>
+                            <button
+                                type="button"
+                                class="glossy-oauth py-2 rounded-lg flex items-center justify-center"
+                                onclick="oauthLogin('microsoft')"
+                            >
+                                <svg class="mr-2 h-4 w-4" viewBox="0 0 24 24">
+                                    <path fill="#F3F2F1" d="M11.4 10.8H0v2.4h11.4V24h2.4V13.2H24v-2.4H13.8V0h-2.4v10.8z"></path>
+                                    <path fill="#00A4EF" d="M11.4 13.2H0V24h11.4V13.2z"></path>
+                                    <path fill="#0078D4" d="M13.8 0v10.8H24V0h-10.2z"></path>
+                                    <path fill="#00BCF2" d="M13.8 13.2H24V24H13.8V13.2z"></path>
+                                </svg>
+                                Microsoft
+                            </button>
+                        </div>
+                    </div>
+
+                    <p class="mt-8 text-center text-sm text-gray-600">
+                        Don't have an account?
+                        <button
+                            type="button"
+                            class="font-medium text-blue-600 hover:underline"
+                            onclick="showPage('signup')"
+                        >
+                            Sign up
+                        </button>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Signup Page -->
+        <div id="signup" class="page">
+            <div class="w-full max-w-md glossy-card rounded-2xl shadow-xl overflow-hidden">
+                <div class="p-8">
+                    <div class="text-center mb-8">
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Create an account</h1>
+                        <p class="text-gray-600">Enter your details to get started</p>
+                    </div>
+
+                    <form id="signup-form" class="space-y-4">
+                        <div class="space-y-2">
+                            <label for="signup-name" class="block text-sm font-medium text-gray-700">Full Name</label>
+                            <input
+                                type="text"
+                                id="signup-name"
+                                class="glossy-input w-full px-4 py-3 rounded-xl"
+                                placeholder="John Doe"
+                                required
+                            />
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="signup-email" class="block text-sm font-medium text-gray-700">Email or Username</label>
+                            <input
+                                type="text"
+                                id="signup-email"
+                                class="glossy-input w-full px-4 py-3 rounded-xl"
+                                placeholder="Enter your email or username"
+                                required
+                            />
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="signup-password" class="block text-sm font-medium text-gray-700">Create Password</label>
+                            <div class="relative">
+                                <input
+                                    type="password"
+                                    id="signup-password"
+                                    class="glossy-input w-full px-4 py-3 pr-10 rounded-xl"
+                                    placeholder="••••••"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                    onclick="togglePassword('signup-password')"
+                                >
+                                    <svg id="signup-password-icon" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S4.057 16.943 2.458 12z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="signup-confirm-password" class="block text-sm font-medium text-gray-700">Confirm Password</label>
+                            <div class="relative">
+                                <input
+                                    type="password"
+                                    id="signup-confirm-password"
+                                    class="glossy-input w-full px-4 py-3 pr-10 rounded-xl"
+                                    placeholder="••••••"
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                    onclick="togglePassword('signup-confirm-password')"
+                                >
+                                    <svg id="signup-confirm-password-icon" class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S4.057 16.943 2.458 12z"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="glossy-button w-full py-3 rounded-xl font-semibold">
+                            <span id="signup-button-text">Create Account</span>
+                            <div id="signup-spinner" class="loading-spinner mx-auto hidden"></div>
+                        </button>
+                    </form>
+
+                    <p class="mt-8 text-center text-sm text-gray-600">
+                        Already have an account?
+                        <button
+                            type="button"
+                            class="font-medium text-blue-600 hover:underline"
+                            onclick="showPage('login')"
+                        >
+                            Sign in
+                        </button>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="notification" class="fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 hidden"></div>
+
+    <script>
+        // Global variables
+        let isLoading = false;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check for OAuth callback
+            handleOAuthCallback();
+            
+            setupEventListeners();
+            updateActiveNav();
+        });
+
+        // Page navigation
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            updateActiveNav();
+        }
+
+        function updateActiveNav() {
+            const activePage = document.querySelector('.page.active').id;
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-white/20');
+            });
+            
+            const activeBtn = document.querySelector(`[onclick="showPage('${activePage}')"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('bg-white/20');
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            document.getElementById('signup-form').addEventListener('submit', handleSignup);
+        }
+
+        // Toggle password visibility
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(inputId + '-icon');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c4.476 0 8.298-1.511 11.369-4.178"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                `;
+            } else {
+                input.type = 'password';
+                icon.innerHTML = `
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7S4.057 16.943 2.458 12z"></path>
+                `;
+            }
+        }
+
+        // Handle login
+        async function handleLogin(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            const rememberMe = document.getElementById('remember-me').checked;
+
+            // Basic validation
+            if (!email || !password) {
+                showNotification('Please fill in all fields', 'error');
+                document.getElementById('login-form').classList.add('error-shake');
+                setTimeout(() => {
+                    document.getElementById('login-form').classList.remove('error-shake');
+                }, 500);
+                return;
+            }
+
+            if (password.length < 6) {
+                showNotification('Password must be at least 6 characters', 'error');
+                document.getElementById('login-form').classList.add('error-shake');
+                setTimeout(() => {
+                    document.getElementById('login-form').classList.remove('error-shake');
+                }, 500);
+                return;
+            }
+
+            setLoading('login', true);
+
+            try {
+                // Call backend authentication API
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Store auth data
+                    const authData = {
+                        user: data.user,
+                        token: data.token,
+                        timestamp: new Date().toISOString(),
+                    };
+
+                    localStorage.setItem("expense_tracker_auth", JSON.stringify(authData));
+
+                    showNotification('Login successful! Redirecting...', 'success');
+                    
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1500);
+
+                } else {
+                    showNotification(data.error || 'Invalid email or password', 'error');
+                    document.getElementById('login-form').classList.add('error-shake');
+                    setTimeout(() => {
+                        document.getElementById('login-form').classList.remove('error-shake');
+                    }, 500);
+                }
+
+            } catch (error) {
+                console.error('Login error:', error);
+                showNotification('Login failed. Please try again.', 'error');
+            } finally {
+                setLoading('login', false);
+            }
+        }
+
+        // Handle signup
+        async function handleSignup(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+
+            // Basic validation
+            if (!name || !email || !password || !confirmPassword) {
+                showNotification('Please fill in all fields', 'error');
+                document.getElementById('signup-form').classList.add('error-shake');
+                setTimeout(() => {
+                    document.getElementById('signup-form').classList.remove('error-shake');
+                }, 500);
+                return;
+            }
+
+            if (name.length < 2) {
+                showNotification('Name must be at least 2 characters', 'error');
+                document.getElementById('signup-form').classList.add('error-shake');
+                setTimeout(() => {
+                    document.getElementById('signup-form').classList.remove('error-shake');
+                }, 500);
+                return;
+            }
+
+            if (password.length < 6) {
+                showNotification('Password must be at least 6 characters', 'error');
+                document.getElementById('signup-form').classList.add('error-shake');
+                setTimeout(() => {
+                    document.getElementById('signup-form').classList.remove('error-shake');
+                }, 500);
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showNotification("Passwords don't match", 'error');
+                document.getElementById('signup-form').classList.add('error-shake');
+                setTimeout(() => {
+                    document.getElementById('signup-form').classList.remove('error-shake');
+                }, 500);
+                return;
+            }
+
+            setLoading('signup', true);
+
+            try {
+                // Call backend signup API
+                const response = await fetch('http://localhost:5000/api/auth/signup', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, email, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok && data.success) {
+                    // Store auth data
+                    const authData = {
+                        user: data.user,
+                        token: data.token,
+                        timestamp: new Date().toISOString(),
+                    };
+
+                    localStorage.setItem("expense_tracker_auth", JSON.stringify(authData));
+
+                    showNotification('Account created successfully! Redirecting...', 'success');
+                    
+                    // Redirect to dashboard
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1500);
+
+                } else {
+                    showNotification(data.error || 'Account creation failed', 'error');
+                    document.getElementById('signup-form').classList.add('error-shake');
+                    setTimeout(() => {
+                        document.getElementById('signup-form').classList.remove('error-shake');
+                    }, 500);
+                }
+
+            } catch (error) {
+                console.error('Signup error:', error);
+                showNotification('Account creation failed. Please try again.', 'error');
+            } finally {
+                setLoading('signup', false);
+            }
+        }
+
+        // OAuth login
+        function oauthLogin(provider) {
+            showNotification(`Connecting to ${provider}...`, 'info');
+            
+            // Redirect to OAuth provider
+            window.location.href = `http://localhost:5000/api/auth/oauth/${provider}`;
+        }
+
+        // Handle OAuth callback on page load
+        function handleOAuthCallback() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const provider = urlParams.get('provider');
+            const email = urlParams.get('email');
+            const name = urlParams.get('name');
+            const error = urlParams.get('error');
+            
+            if (provider && email && name) {
+                // OAuth success - redirect to success page
+                window.location.href = `auth-success.html?provider=${provider}&email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`;
+            } else if (provider && error) {
+                // OAuth error - redirect to error page
+                window.location.href = `auth-error.html?provider=${provider}&error=${encodeURIComponent(error)}`;
+            }
+        }
+
+        // Set loading state
+        function setLoading(form, loading) {
+            isLoading = loading;
+            const button = document.getElementById(`${form}-button-text`);
+            const spinner = document.getElementById(`${form}-spinner`);
+            
+            if (loading) {
+                button.classList.add('hidden');
+                spinner.classList.remove('hidden');
+            } else {
+                button.classList.remove('hidden');
+                spinner.classList.add('hidden');
+            }
+        }
+
+        // Simulate API call
+        function simulateApiCall() {
+            return new Promise(resolve => setTimeout(resolve, 1500));
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500 text-white' : 
+                type === 'error' ? 'bg-red-500 text-white' : 
+                'bg-blue-500 text-white'
+            }`;
+            notification.textContent = message;
+            notification.classList.remove('hidden');
+
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Check if already authenticated
+        function checkAuth() {
+            const authData = localStorage.getItem("expense_tracker_auth");
+            if (authData) {
+                const parsed = JSON.parse(authData);
+                // Check if token is not expired (24 hours)
+                const tokenAge = Date.now() - new Date(parsed.timestamp).getTime();
+                if (tokenAge < 24 * 60 * 60 * 1000) {
+                    window.location.href = 'index.html';
+                }
+            }
+        }
+
+        // Check auth on load
+        checkAuth();
+    </script>
+</body>
+</html>

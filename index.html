@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker & Analytics Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .page { display: none; }
+        .page.active { display: block; }
+        .chart-container { position: relative; height: 300px; width: 100%; }
+        
+        /* Glossy UI Styles */
+        .glossy-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 
+                0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                0 10px 10px -5px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glossy-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .glossy-card:hover::before {
+            left: 100%;
+        }
+        
+        .glossy-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            box-shadow: 
+                0 10px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            width: 100vw;
+            min-width: 100%;
+            height: 100px;
+            min-height: 100px;
+            position: relative;
+        }
+        
+        .glossy-nav-btn {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glossy-nav-btn:hover {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glossy-nav-btn.active {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            color: white;
+            box-shadow: 
+                0 10px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        }
+        
+        .glossy-stat-card {
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 
+                0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                0 10px 10px -5px rgba(0, 0, 0, 0.04),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glossy-stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 25px 30px -5px rgba(0, 0, 0, 0.15),
+                0 15px 15px -5px rgba(0, 0, 0, 0.08);
+        }
+        
+        .glossy-stat-card::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg);
+            transition: all 0.5s;
+            opacity: 0;
+        }
+        
+        .glossy-stat-card:hover::after {
+            opacity: 1;
+            animation: shimmer 0.5s ease;
+        }
+        
+        @keyframes shimmer {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        .glossy-icon {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            box-shadow: 
+                0 10px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glossy-icon::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s;
+        }
+        
+        .glossy-icon:hover::before {
+            transform: translateX(100%);
+        }
+        
+        .glossy-amount {
+            background: linear-gradient(145deg, #1e293b, #334155);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glossy-bg {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glossy-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(30, 41, 59, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(15, 23, 42, 0.3) 0%, transparent 50%);
+            animation: float 6s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .glossy-button {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: none;
+            color: white;
+            box-shadow: 
+                0 10px 20px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glossy-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 15px 25px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        
+        .glossy-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .glossy-oauth:hover {
+            transform: translateY(-2px);
+            box-shadow: 
+                0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .loading-spinner {
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #1e293b;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .error-shake {
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="glossy-header shadow-lg border-b border-white/20 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-240 py-8">
+                <div class="flex items-center">
+                    <h1 class="text-3xl font-bold text-white flex items-center">
+                        <span class="mr-3">💰</span> EXPENSE TRACKER
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="user-info" class="text-white/90 text-sm mr-4">Welcome!</span>
+                    <nav class="flex space-x-8">
+                        <button onclick="showPage('dashboard')" class="nav-btn glossy-nav-btn text-white/90 hover:text-white px-4 py-2 text-sm font-medium rounded-lg">Dashboard</button>
+                        <button onclick="showPage('expenses')" class="nav-btn glossy-nav-btn text-white/90 hover:text-white px-4 py-2 text-sm font-medium rounded-lg">Expenses</button>
+                        <button onclick="showPage('analytics')" class="nav-btn glossy-nav-btn text-white/90 hover:text-white px-4 py-2 text-sm font-medium rounded-lg">Analytics</button>
+                        <button onclick="window.location.href='profile.html'" class="nav-btn glossy-nav-btn text-white/90 hover:text-white px-4 py-2 text-sm font-medium rounded-lg">Profile</button>
+                        <button onclick="logout()" class="nav-btn glossy-nav-btn text-white/90 hover:text-white px-4 py-2 text-sm font-medium rounded-lg">Logout</button>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Authentication Required -->
+        <div id="auth-required" class="min-h-screen flex items-center justify-center" style="display: none;">
+            <div class="w-full max-w-md glossy-card rounded-2xl shadow-xl overflow-hidden">
+                <div class="p-8">
+                    <div class="text-center mb-8">
+                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Authentication Required</h1>
+                        <p class="text-gray-600">Please sign in to access your expense tracker</p>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <a href="auth.html" class="glossy-button w-full py-3 rounded-xl font-semibold text-center block">
+                            Sign In / Sign Up
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main App (Authenticated) -->
+        <div id="main-app">
+        <!-- Dashboard Page -->
+        <div id="dashboard" class="page active">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6">Dashboard</h2>
+            
+            <!-- Overview Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="glossy-stat-card p-6 rounded-xl">
+                    <div class="flex items-center">
+                        <div class="glossy-icon rounded-xl p-3 text-white">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Total Spent</p>
+                            <p class="text-2xl font-bold glossy-amount" id="total-spent">₹0.00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glossy-stat-card p-6 rounded-xl">
+                    <div class="flex items-center">
+                        <div class="glossy-icon rounded-xl p-3 text-white">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Transactions</p>
+                            <p class="text-2xl font-bold glossy-amount" id="transaction-count">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glossy-stat-card p-6 rounded-xl">
+                    <div class="flex items-center">
+                        <div class="glossy-icon rounded-xl p-3 text-white">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Average Transaction</p>
+                            <p class="text-2xl font-bold glossy-amount" id="avg-transaction">₹0.00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glossy-stat-card p-6 rounded-xl">
+                    <div class="flex items-center">
+                        <div class="glossy-icon rounded-xl p-3 text-white">
+                            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-600">Daily Average</p>
+                            <p class="text-2xl font-bold glossy-amount" id="daily-avg">₹0.00</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="glossy-card p-6 rounded-xl">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4 flex items-center">
+                    <span class="mr-2">📊</span> Recent Transactions
+                </h3>
+                <div id="recent-transactions" class="space-y-3">
+                    <p class="text-gray-500">No transactions yet. Add your first expense!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Expenses Page -->
+        <div id="expenses" class="page">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6">Manage Expenses</h2>
+            
+            <!-- Add Expense Form -->
+            <div class="bg-white p-6 rounded-lg shadow mb-8">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Add New Expense</h3>
+                <form id="expense-form" class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <input type="text" id="description" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Lunch at Restaurant">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                            <input type="number" id="amount" step="0.01" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="500.00">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                            <select id="category" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select category</option>
+                                <option value="Food & Dining">Food & Dining</option>
+                                <option value="Transportation">Transportation</option>
+                                <option value="Shopping">Shopping</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Bills & Utilities">Bills & Utilities</option>
+                                <option value="Healthcare">Healthcare</option>
+                                <option value="Education">Education</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+                            <select id="payment-method" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select payment method</option>
+                                <option value="Credit Card">Credit Card</option>
+                                <option value="Debit Card">Debit Card</option>
+                                <option value="Cash">Cash</option>
+                                <option value="Bank Transfer">Bank Transfer</option>
+                                <option value="Digital Wallet">Digital Wallet</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Notes (optional)</label>
+                        <textarea id="notes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Additional notes..."></textarea>
+                    </div>
+                    <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-md hover:bg-blue-600 transition duration-200">
+                        Add Expense
+                    </button>
+                </form>
+            </div>
+
+            <!-- Expense List -->
+            <div class="bg-white p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">All Expenses</h3>
+                <div id="expense-list" class="space-y-3">
+                    <p class="text-gray-500">No expenses yet. Add your first expense above!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Page -->
+        <div id="analytics" class="page">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6">Analytics & Insights</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Category Breakdown</h3>
+                    <div class="chart-container">
+                        <canvas id="category-chart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-lg shadow">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Spending Trends</h3>
+                    <div class="chart-container">
+                        <canvas id="trends-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 bg-white p-6 rounded-lg shadow">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">Category Analytics</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="text-left py-3 px-4">Category</th>
+                                <th class="text-left py-3 px-4">Total</th>
+                                <th class="text-left py-3 px-4">Transactions</th>
+                                <th class="text-left py-3 px-4">Average</th>
+                                <th class="text-left py-3 px-4">Percentage</th>
+                            </tr>
+                        </thead>
+                        <tbody id="category-tbody">
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-gray-500">No data available</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="notification" class="fixed top-4 right-4 p-4 rounded-lg shadow-xl z-50 hidden transform translate-x-full opacity-0 transition-all duration-300 ease-in-out backdrop-blur-lg border border-white/20 min-w-[250px] max-w-[400px]"></div>
+
+    <script>
+        // Global variables
+        let expenses = [];
+        let categoryChart = null;
+        let trendsChart = null;
+        let currentUser = null;
+
+        // API base URL
+        const API_BASE = 'http://localhost:5000/api';
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthentication();
+            checkSystemStatus();
+            setupEventListeners();
+            updateActiveNav();
+        });
+
+        // Check authentication
+        function checkAuthentication() {
+            const authData = localStorage.getItem("expense_tracker_auth");
+            if (authData) {
+                const parsed = JSON.parse(authData);
+                // Check if token is not expired (24 hours)
+                const tokenAge = Date.now() - new Date(parsed.timestamp).getTime();
+                if (tokenAge < 24 * 60 * 60 * 1000) {
+                    currentUser = parsed.user;
+                    showAuthenticatedUI();
+                } else {
+                    // Token expired, remove it
+                    localStorage.removeItem("expense_tracker_auth");
+                    showLoginRequired();
+                }
+            } else {
+                showLoginRequired();
+            }
+        }
+
+        // Show authenticated UI
+        function showAuthenticatedUI() {
+            document.getElementById('auth-required').style.display = 'none';
+            document.getElementById('main-app').style.display = 'block';
+            document.getElementById('user-info').textContent = `Welcome, ${currentUser.name || currentUser.email}!`;
+            
+            // Load expenses only when user is authenticated
+            loadExpenses();
+        }
+
+        // Show login required
+        function showLoginRequired() {
+            document.getElementById('auth-required').style.display = 'flex';
+            document.getElementById('main-app').style.display = 'none';
+            
+            // Reset welcome message to default
+            document.getElementById('user-info').textContent = 'Welcome!';
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem("expense_tracker_auth");
+            currentUser = null;
+            showLoginRequired();
+            showNotification('Logged out successfully', 'success');
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            
+            // Reset classes and styles
+            notification.className = 'fixed top-4 right-4 p-4 rounded-lg shadow-xl z-50 transform transition-all duration-300 ease-in-out backdrop-blur-lg border border-white/20 min-w-[250px] max-w-[400px]';
+            
+            // Add type-specific styling
+            if (type === 'success') {
+                notification.classList.add('bg-green-500', 'text-white');
+            } else if (type === 'error') {
+                notification.classList.add('bg-red-500', 'text-white');
+            } else {
+                notification.classList.add('bg-blue-500', 'text-white');
+            }
+            
+            // Set message and show
+            notification.textContent = message;
+            notification.classList.remove('hidden');
+            
+            // Force reflow to ensure transition works
+            notification.offsetHeight;
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+                notification.style.opacity = '1';
+            }, 10);
+
+            // Hide after 3 seconds
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    notification.classList.add('hidden');
+                }, 300);
+            }, 3000);
+        }
+
+        // Page navigation
+        function showPage(pageId) {
+            // Hide all pages
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            
+            // Show selected page
+            document.getElementById(pageId).classList.add('active');
+            
+            // Update active nav
+            updateActiveNav();
+            
+            // Refresh data when switching pages
+            if (pageId === 'analytics') {
+                updateAnalytics();
+            }
+        }
+
+        function updateActiveNav() {
+            const activePage = document.querySelector('.page.active').id;
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-blue-600', 'font-bold');
+                btn.classList.add('text-gray-700');
+            });
+            
+            const activeBtn = document.querySelector(`[onclick="showPage('${activePage}')"]`);
+            if (activeBtn) {
+                activeBtn.classList.remove('text-gray-700');
+                activeBtn.classList.add('text-blue-600', 'font-bold');
+            }
+        }
+
+        // Check system status
+        async function checkSystemStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                if (response.ok) {
+                    const data = await response.json();
+                    // Show success notification if first time connecting
+                    if (!window.systemStatusChecked) {
+                        showNotification('Connected successfully', 'success');
+                        window.systemStatusChecked = true;
+                    }
+                } else {
+                    throw new Error('API not responding');
+                }
+            } catch (error) {
+                console.error('Connection failed:', error.message);
+                showNotification('Connection failed', 'error');
+            }
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            document.getElementById('expense-form').addEventListener('submit', handleAddExpense);
+        }
+
+        // Load expenses from API
+        async function loadExpenses() {
+            try {
+                const response = await fetch(`${API_BASE}/expenses`, {
+                    headers: {
+                        'x-user-email': currentUser?.email || 'guest'
+                    }
+                });
+                const data = await response.json();
+                console.log('Raw API response:', data);
+                expenses = Array.isArray(data) ? data : data.expenses || [];
+                console.log('Processed expenses array:', expenses);
+                updateDashboard();
+                updateExpenseList();
+                updateAnalytics();
+            } catch (error) {
+                console.error('Error loading expenses:', error);
+                showNotification('Failed to load expenses', 'error');
+            }
+        }
+
+        // Handle add expense
+        async function handleAddExpense(e) {
+            e.preventDefault();
+            
+            console.log('Form submitted');
+            
+            const expense = {
+                description: document.getElementById('description').value,
+                amount: parseFloat(document.getElementById('amount').value),
+                category: document.getElementById('category').value,
+                paymentMethod: document.getElementById('payment-method').value,
+                notes: document.getElementById('notes').value,
+                date: new Date().toISOString().split('T')[0]
+            };
+            
+            console.log('Expense data:', expense);
+
+            try {
+                console.log('Sending request to:', `${API_BASE}/expenses`);
+                const response = await fetch(`${API_BASE}/expenses`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': currentUser?.email || 'guest'
+                    },
+                    body: JSON.stringify(expense)
+                });
+
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+
+                if (response.ok) {
+                    document.getElementById('expense-form').reset();
+                    loadExpenses();
+                    showNotification('Expense added successfully!', 'success');
+                } else {
+                    const errorText = await response.text();
+                    console.error('Server response:', errorText);
+                    throw new Error(`Failed to add expense: ${response.status}`);
+                }
+            } catch (error) {
+                console.error('Error adding expense:', error);
+                showNotification('Failed to add expense', 'error');
+            }
+        }
+
+        // Update dashboard
+        function updateDashboard() {
+            console.log('Updating dashboard with expenses:', expenses);
+            const totalSpent = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            const transactionCount = expenses.length;
+            const avgTransaction = transactionCount > 0 ? totalSpent / transactionCount : 0;
+            const dailyAvg = totalSpent / 30;
+
+            document.getElementById('total-spent').textContent = `₹${totalSpent.toFixed(2)}`;
+            document.getElementById('transaction-count').textContent = transactionCount;
+            document.getElementById('avg-transaction').textContent = `₹${avgTransaction.toFixed(2)}`;
+            document.getElementById('daily-avg').textContent = `₹${dailyAvg.toFixed(2)}`;
+
+            // Update recent transactions
+            const recentContainer = document.getElementById('recent-transactions');
+            if (expenses.length > 0) {
+                const recent = expenses.slice(-5).reverse();
+                recentContainer.innerHTML = recent.map(exp => `
+                    <div class="flex justify-between items-center p-4 bg-gradient-to-r from-white to-gray-50 rounded-xl border border-gray-100 hover:border-purple-200 transition-all duration-300 hover:shadow-lg">
+                        <div>
+                            <p class="font-medium text-gray-900">${exp.description}</p>
+                            <p class="text-sm text-gray-500">${exp.category} • ${new Date(exp.date).toLocaleDateString()}</p>
+                        </div>
+                        <p class="font-bold text-lg glossy-amount">₹${exp.amount.toFixed(2)}</p>
+                    </div>
+                `).join('');
+            } else {
+                recentContainer.innerHTML = '<p class="text-gray-500">No transactions yet. Add your first expense!</p>';
+            }
+        }
+
+        // Update expense list
+        function updateExpenseList() {
+            const listContainer = document.getElementById('expense-list');
+            if (expenses.length > 0) {
+                listContainer.innerHTML = expenses.map(exp => `
+                    <div class="flex justify-between items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                        <div class="flex-1">
+                            <p class="font-medium text-gray-900">${exp.description}</p>
+                            <p class="text-sm text-gray-500">${exp.category} • ${exp.paymentMethod} • ${new Date(exp.date).toLocaleDateString()}</p>
+                            ${exp.notes ? `<p class="text-sm text-gray-400 mt-1">${exp.notes}</p>` : ''}
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold text-lg">₹${exp.amount.toFixed(2)}</p>
+                            <button onclick="deleteExpense('${exp._id}')" class="text-red-500 hover:text-red-700 text-sm mt-1">Delete</button>
+                        </div>
+                    </div>
+                `).join('');
+            } else {
+                listContainer.innerHTML = '<p class="text-gray-500">No expenses yet. Add your first expense above!</p>';
+            }
+        }
+
+        // Delete expense
+        async function deleteExpense(id) {
+            if (!confirm('Are you sure you want to delete this expense?')) return;
+            
+            try {
+                const response = await fetch(`${API_BASE}/expenses/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'x-user-email': currentUser?.email || 'guest'
+                    }
+                });
+
+                if (response.ok) {
+                    loadExpenses();
+                    showNotification('Expense deleted successfully!', 'success');
+                } else {
+                    throw new Error('Failed to delete expense');
+                }
+            } catch (error) {
+                console.error('Error deleting expense:', error);
+                showNotification('Failed to delete expense', 'error');
+            }
+        }
+
+        // Update analytics
+        function updateAnalytics() {
+            updateCategoryChart();
+            updateTrendsChart();
+            updateCategoryTable();
+        }
+
+        // Update category chart
+        function updateCategoryChart() {
+            const categoryData = {};
+            expenses.forEach(exp => {
+                categoryData[exp.category] = (categoryData[exp.category] || 0) + exp.amount;
+            });
+
+            const ctx = document.getElementById('category-chart').getContext('2d');
+            
+            if (categoryChart) {
+                categoryChart.destroy();
+            }
+
+            categoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(categoryData),
+                    datasets: [{
+                        data: Object.values(categoryData),
+                        backgroundColor: [
+                            '#3B82F6', '#10B981', '#F59E0B', '#EF4444', 
+                            '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'
+                        ]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update trends chart
+        function updateTrendsChart() {
+            const monthlyData = {};
+            expenses.forEach(exp => {
+                const month = new Date(exp.date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                monthlyData[month] = (monthlyData[month] || 0) + exp.amount;
+            });
+
+            const ctx = document.getElementById('trends-chart').getContext('2d');
+            
+            if (trendsChart) {
+                trendsChart.destroy();
+            }
+
+            trendsChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Object.keys(monthlyData),
+                    datasets: [{
+                        label: 'Monthly Spending',
+                        data: Object.values(monthlyData),
+                        borderColor: '#3B82F6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '₹' + value;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Update category table
+        function updateCategoryTable() {
+            const categoryData = {};
+            expenses.forEach(exp => {
+                if (!categoryData[exp.category]) {
+                    categoryData[exp.category] = { total: 0, count: 0 };
+                }
+                categoryData[exp.category].total += exp.amount;
+                categoryData[exp.category].count++;
+            });
+
+            const totalSpent = expenses.reduce((sum, exp) => sum + exp.amount, 0);
+            const tbody = document.getElementById('category-tbody');
+
+            if (Object.keys(categoryData).length > 0) {
+                tbody.innerHTML = Object.entries(categoryData)
+                    .map(([category, data]) => {
+                        const avg = data.total / data.count;
+                        const percentage = totalSpent > 0 ? (data.total / totalSpent * 100).toFixed(1) : 0;
+                        
+                        return `
+                            <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                <td class="py-3 px-4 font-medium">${category}</td>
+                                <td class="py-3 px-4 font-semibold">₹${data.total.toFixed(2)}</td>
+                                <td class="py-3 px-4">${data.count}</td>
+                                <td class="py-3 px-4">₹${avg.toFixed(2)}</td>
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center">
+                                        <div class="w-full bg-gray-200 rounded-full h-2 mr-2">
+                                            <div class="bg-blue-500 h-2 rounded-full" style="width: ${percentage}%"></div>
+                                        </div>
+                                        <span class="text-sm font-medium">${percentage}%</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    })
+                    .join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4 text-gray-500">No data available</td></tr>';
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg shadow-lg z-50 ${
+                type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+            }`;
+            notification.textContent = message;
+            notification.classList.remove('hidden');
+
+            setTimeout(() => {
+                notification.classList.add('hidden');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

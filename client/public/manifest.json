@@ -1,0 +1,9 @@
+{
+  "short_name": "Expense Tracker",
+  "name": "Expense Tracker & Analytics Dashboard",
+  "icons": [],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#000000",
+  "background_color": "#ffffff"
+}

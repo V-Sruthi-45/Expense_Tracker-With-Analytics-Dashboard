@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Expense Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .glossy-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glossy-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .glossy-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .glossy-select {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .glossy-select:hover {
+            background: linear-gradient(145deg, #334155, #1e293b);
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+        
+        .glossy-select:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #3b82f6;
+            border-color: #3b82f6;
+        }
+        
+        .glossy-select option {
+            background: #1e293b;
+            color: white;
+            padding: 8px 12px;
+        }
+        
+        .profile-container {
+            overflow-x: hidden !important;
+            overflow-y: auto !important;
+            min-width: 100%;
+            max-width: 100%;
+            height: 80vh;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .profile-container::-webkit-scrollbar {
+            width: 20px !important;
+            visibility: visible !important;
+            display: block !important;
+        }
+        
+        .profile-container::-webkit-scrollbar-track {
+            background: #374151 !important;
+            border-radius: 10px !important;
+            border: 2px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3) !important;
+        }
+        
+        .profile-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(145deg, #ffffff, #e5e7eb) !important;
+            border-radius: 10px !important;
+            border: 3px solid #374151 !important;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4) !important;
+            min-height: 30px !important;
+        }
+        
+        .profile-container::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(145deg, #f3f4f6, #ffffff) !important;
+        }
+        
+        .profile-container::-webkit-scrollbar-corner {
+            background: #374151 !important;
+        }
+        
+        /* Force scrollbar visibility for all browsers */
+        .profile-container {
+            -ms-overflow-style: scrollbar !important;
+            scrollbar-gutter: stable !important;
+            scrollbar-width: thick !important;
+            scrollbar-color: #ffffff #374151 !important;
+        }
+        
+        .profile-content {
+            min-width: 100% !important;
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+        
+        .scroll-indicator {
+            display: none;
+        }
+        
+        .glossy-button {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glossy-button:hover {
+            background: linear-gradient(145deg, #334155, #1e293b);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .glossy-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .glossy-button:hover::before {
+            left: 100%;
+        }
+        
+        .glossy-nav-btn {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glossy-nav-btn:hover {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .glossy-nav-btn.active {
+            background: linear-gradient(145deg, rgba(59, 130, 246, 0.3), rgba(59, 130, 246, 0.2));
+            border: 1px solid rgba(59, 130, 246, 0.4);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            width: 48px;
+            height: 24px;
+            background: #4b5563;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .toggle-switch.active {
+            background: #3b82f6;
+        }
+        
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+        }
+        
+        .toggle-switch.active::after {
+            transform: translateX(24px);
+        }
+        
+        .page {
+            display: none;
+        }
+        
+        .page.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="glossy-bg min-h-screen">
+    <!-- Navigation -->
+    <nav class="glossy-card border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <h1 class="text-xl font-bold text-white">Expense Tracker</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span id="user-info" class="text-white/90 text-sm mr-4">Welcome!</span>
+                    <nav class="flex space-x-8">
+                        <button onclick="window.location.href='index.html'" class="glossy-nav-btn text-white/90 hover:text-white px-4 py-2 text-sm font-medium rounded-lg">Dashboard</button>
+                        <button onclick="window.location.href='index.html'" class="glossy-nav-btn text-white/90 hover:text-white px-4 py-2 text-sm font-medium rounded-lg">Expenses</button>
+                        <button onclick="window.location.href='index.html'" class="glossy-nav-btn text-white/90 hover:text-white px-4 py-2 text-sm font-medium rounded-lg">Analytics</button>
+                        <button onclick="showPage('profile')" class="glossy-nav-btn active text-white/90 hover:text-white px-4 py-2 text-sm font-medium rounded-lg">Profile</button>
+                        <button onclick="logout()" class="glossy-nav-btn text-white/90 hover:text-white px-4 py-2 text-sm font-medium rounded-lg">Logout</button>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Profile Page -->
+        <div id="profile" class="page active">
+            <div class="profile-container">
+                <div class="profile-content">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Profile Info -->
+                <div class="lg:col-span-1">
+                    <div class="glossy-card rounded-2xl p-6">
+                        <h2 class="text-xl font-bold text-white mb-6">Profile Information</h2>
+                        
+                        <!-- Avatar -->
+                        <div class="text-center mb-6">
+                            <div class="w-24 h-24 mx-auto bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-3xl font-bold mb-4">
+                                <span id="avatar-initial">U</span>
+                            </div>
+                            <div class="mb-2">
+                                <div id="name-display" class="flex items-center justify-center gap-2">
+                                    <h3 id="profile-name" class="text-lg font-semibold text-white">User Name</h3>
+                                    <button onclick="editUsername()" class="text-blue-400 hover:text-blue-300 text-sm">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div id="name-edit" class="hidden">
+                                    <div class="flex items-center justify-center gap-2">
+                                        <input type="text" id="username-input" class="bg-white/10 border border-white/20 rounded px-2 py-1 text-white text-center" maxlength="20">
+                                        <button onclick="saveUsername()" class="text-green-400 hover:text-green-300 text-sm">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                        </button>
+                                        <button onclick="cancelEditUsername()" class="text-red-400 hover:text-red-300 text-sm">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <p id="profile-email" class="text-gray-300 text-sm">user@example.com</p>
+                        </div>
+                        
+                        <!-- Stats -->
+                        <div class="space-y-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">Total Expenses</span>
+                                <span id="total-expenses" class="text-white font-semibold">0</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">Account Created</span>
+                                <span id="account-created" class="text-white font-semibold">Today</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-gray-300">Login Method</span>
+                                <span id="login-method" class="text-white font-semibold">Email</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Settings Sections -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- General Settings -->
+                    <div class="glossy-card rounded-2xl p-6">
+                        <h3 class="text-lg font-semibold text-white mb-4">General Settings</h3>
+                        
+                        <div class="space-y-4">
+                            <!-- Currency -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Default Currency</label>
+                                <select id="currency" class="glossy-select w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="₹">₹ Indian Rupee (₹)</option>
+                                    <option value="₹">₹ Indian Rupee (₹)</option>
+                                    <option value="€">€ Euro (€)</option>
+                                    <option value="£">£ British Pound (£)</option>
+                                    <option value="¥">¥ Japanese Yen (¥)</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Language -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Language</label>
+                                <select id="language" class="glossy-select w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="en">English</option>
+                                    <option value="hi">हिन्दी (Hindi)</option>
+                                    <option value="es">Español</option>
+                                    <option value="fr">Français</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Theme -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-300 mb-2">Theme</label>
+                                <select id="theme" class="glossy-select w-full px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="dark">Dark (Default)</option>
+                                    <option value="light">Light</option>
+                                    <option value="auto">Auto</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Notification Settings -->
+                    <div class="glossy-card rounded-2xl p-6">
+                        <h3 class="text-lg font-semibold text-white mb-4">Notifications</h3>
+                        
+                        <div class="space-y-4">
+                            <!-- Email Notifications -->
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-white font-medium">Email Notifications</p>
+                                    <p class="text-gray-400 text-sm">Receive expense summaries via email</p>
+                                </div>
+                                <div class="toggle-switch" id="email-notifications" onclick="toggleSwitch(this)"></div>
+                            </div>
+                            
+                            <!-- Budget Alerts -->
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-white font-medium">Budget Alerts</p>
+                                    <p class="text-gray-400 text-sm">Get notified when exceeding budget</p>
+                                </div>
+                                <div class="toggle-switch active" id="budget-alerts" onclick="toggleSwitch(this)"></div>
+                            </div>
+                            
+                            <!-- Daily Reminders -->
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-white font-medium">Daily Reminders</p>
+                                    <p class="text-gray-400 text-sm">Remind to log expenses daily</p>
+                                </div>
+                                <div class="toggle-switch" id="daily-reminders" onclick="toggleSwitch(this)"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Privacy Settings -->
+                    <div class="glossy-card rounded-2xl p-6">
+                        <h3 class="text-lg font-semibold text-white mb-4">Privacy & Security</h3>
+                        
+                        <div class="space-y-4">
+                            <!-- Data Export -->
+                            <div>
+                                <p class="text-white font-medium mb-2">Data Export</p>
+                                <p class="text-gray-400 text-sm mb-3">Download all your expense data</p>
+                                <button onclick="exportData()" class="glossy-button px-4 py-2 rounded-lg text-white text-sm">
+                                    Export Data
+                                </button>
+                            </div>
+                            
+                            <!-- Delete Account -->
+                            <div>
+                                <p class="text-white font-medium mb-2">Delete Account</p>
+                                <p class="text-gray-400 text-sm mb-3">Permanently delete your account and all data</p>
+                                <button onclick="deleteAccount()" class="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-lg text-white text-sm transition">
+                                    Delete Account
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Save Button -->
+                    <div class="flex justify-end">
+                        <button onclick="saveSettings()" class="glossy-button px-6 py-3 rounded-xl text-white font-semibold">
+                            Save Settings
+                        </button>
+                    </div>
+                </div>
+                </div>
+                <div class="scroll-indicator">← Scroll horizontally to see all content →</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="notification" class="fixed top-4 right-4 p-4 rounded-lg shadow-xl z-50 hidden transform translate-x-full opacity-0 transition-all duration-300 ease-in-out backdrop-blur-lg border border-white/20 min-w-[250px] max-w-[400px]"></div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let settings = {
+            currency: '₹',
+            language: 'en',
+            theme: 'dark',
+            emailNotifications: false,
+            budgetAlerts: true,
+            dailyReminders: false
+        };
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthentication();
+            loadSettings();
+            updateProfileInfo();
+        });
+
+        // Check authentication
+        function checkAuthentication() {
+            const authData = localStorage.getItem("expense_tracker_auth");
+            console.log('Loading authData on page load:', authData);
+            if (authData) {
+                const parsed = JSON.parse(authData);
+                console.log('Parsed authData on load:', parsed);
+                const tokenAge = Date.now() - new Date(parsed.timestamp).getTime();
+                if (tokenAge < 24 * 60 * 60 * 1000) {
+                    currentUser = parsed.user;
+                    console.log('Set currentUser to:', currentUser);
+                    // Update welcome message if element exists
+                    const userInfo = document.getElementById('user-info');
+                    if (userInfo) {
+                        userInfo.textContent = `Welcome, ${currentUser.name || currentUser.email}!`;
+                    }
+                } else {
+                    localStorage.removeItem("expense_tracker_auth");
+                    window.location.href = 'auth.html';
+                }
+            } else {
+                window.location.href = 'auth.html';
+            }
+        }
+
+        // Load settings
+        function loadSettings() {
+            const savedSettings = localStorage.getItem('expense_tracker_settings');
+            if (savedSettings) {
+                settings = { ...settings, ...JSON.parse(savedSettings) };
+            }
+            
+            // Apply settings to UI
+            document.getElementById('currency').value = settings.currency;
+            document.getElementById('language').value = settings.language;
+            document.getElementById('theme').value = settings.theme;
+            
+            // Set toggle states
+            document.getElementById('email-notifications').classList.toggle('active', settings.emailNotifications);
+            document.getElementById('budget-alerts').classList.toggle('active', settings.budgetAlerts);
+            document.getElementById('daily-reminders').classList.toggle('active', settings.dailyReminders);
+        }
+
+        // Update profile info
+        function updateProfileInfo() {
+            if (currentUser) {
+                document.getElementById('profile-name').textContent = currentUser.name || 'User';
+                document.getElementById('profile-email').textContent = currentUser.email;
+                document.getElementById('avatar-initial').textContent = (currentUser.name || currentUser.email).charAt(0).toUpperCase();
+                document.getElementById('login-method').textContent = currentUser.provider ? 
+                    currentUser.provider.charAt(0).toUpperCase() + currentUser.provider.slice(1) : 'Email';
+                
+                // Load user stats
+                loadUserStats();
+            }
+        }
+
+        // Username editing functions
+        function editUsername() {
+            const currentName = currentUser.name || 'User';
+            document.getElementById('username-input').value = currentName;
+            document.getElementById('name-display').classList.add('hidden');
+            document.getElementById('name-edit').classList.remove('hidden');
+            document.getElementById('username-input').focus();
+            document.getElementById('username-input').select();
+        }
+
+        function saveUsername() {
+            const newName = document.getElementById('username-input').value.trim();
+            
+            if (newName === '') {
+                showNotification('Username cannot be empty', 'error');
+                return;
+            }
+            
+            if (newName.length > 20) {
+                showNotification('Username must be 20 characters or less', 'error');
+                return;
+            }
+            
+            // Update current user object
+            currentUser.name = newName;
+            
+            // Update localStorage with correct key
+            const authData = localStorage.getItem('expense_tracker_auth');
+            console.log('Current authData before save:', authData);
+            
+            if (authData) {
+                const parsed = JSON.parse(authData);
+                console.log('Parsed authData before save:', parsed);
+                parsed.user.name = newName;
+                console.log('Parsed authData after save:', parsed);
+                localStorage.setItem('expense_tracker_auth', JSON.stringify(parsed));
+                console.log('Saved to localStorage with key: expense_tracker_auth');
+            }
+            
+            // Verify it was saved
+            const verifyData = localStorage.getItem('expense_tracker_auth');
+            console.log('Verification - saved data:', verifyData);
+            
+            // Update UI
+            document.getElementById('profile-name').textContent = newName;
+            document.getElementById('avatar-initial').textContent = newName.charAt(0).toUpperCase();
+            
+            // Update welcome message in main app if it exists
+            const userInfo = document.getElementById('user-info');
+            if (userInfo) {
+                userInfo.textContent = `Welcome, ${newName}!`;
+            }
+            
+            // Switch back to display mode
+            document.getElementById('name-edit').classList.add('hidden');
+            document.getElementById('name-display').classList.remove('hidden');
+            
+            showNotification('Username updated successfully!', 'success');
+        }
+
+        function cancelEditUsername() {
+            document.getElementById('name-edit').classList.add('hidden');
+            document.getElementById('name-display').classList.remove('hidden');
+        }
+
+        // Handle Enter key in username input
+        document.addEventListener('DOMContentLoaded', function() {
+            const usernameInput = document.getElementById('username-input');
+            if (usernameInput) {
+                usernameInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        saveUsername();
+                    } else if (e.key === 'Escape') {
+                        cancelEditUsername();
+                    }
+                });
+            }
+        });
+
+        // Load user stats
+        async function loadUserStats() {
+            try {
+                const response = await fetch(`http://localhost:5000/api/expenses`, {
+                    headers: {
+                        'x-user-email': currentUser.email
+                    }
+                });
+                const expenses = await response.json();
+                document.getElementById('total-expenses').textContent = expenses.length;
+                
+                // Get account creation date
+                const authData = JSON.parse(localStorage.getItem("expense_tracker_auth"));
+                if (authData && authData.timestamp) {
+                    const createdDate = new Date(authData.timestamp);
+                    document.getElementById('account-created').textContent = createdDate.toLocaleDateString();
+                }
+            } catch (error) {
+                console.error('Error loading user stats:', error);
+            }
+        }
+
+        // Toggle switch
+        function toggleSwitch(element) {
+            element.classList.toggle('active');
+        }
+
+        // Save settings
+        function saveSettings() {
+            settings.currency = document.getElementById('currency').value;
+            settings.language = document.getElementById('language').value;
+            settings.theme = document.getElementById('theme').value;
+            settings.emailNotifications = document.getElementById('email-notifications').classList.contains('active');
+            settings.budgetAlerts = document.getElementById('budget-alerts').classList.contains('active');
+            settings.dailyReminders = document.getElementById('daily-reminders').classList.contains('active');
+            
+            localStorage.setItem('expense_tracker_settings', JSON.stringify(settings));
+            showNotification('Settings saved successfully!', 'success');
+        }
+
+        // Export data
+        function exportData() {
+            fetch(`http://localhost:5000/api/expenses`, {
+                headers: {
+                    'x-user-email': currentUser.email
+                }
+            })
+            .then(response => response.json())
+            .then(expenses => {
+                const dataStr = JSON.stringify(expenses, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `expense-data-${new Date().toISOString().split('T')[0]}.json`;
+                link.click();
+                URL.revokeObjectURL(url);
+                showNotification('Data exported successfully!', 'success');
+            })
+            .catch(error => {
+                console.error('Error exporting data:', error);
+                showNotification('Failed to export data', 'error');
+            });
+        }
+
+        // Delete account
+        function deleteAccount() {
+            if (confirm('Are you sure you want to delete your account? This action cannot be undone and will delete all your expense data.')) {
+                // Delete from backend
+                fetch(`http://localhost:5000/api/user/delete`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-user-email': currentUser.email
+                    }
+                })
+                .then(response => {
+                    if (response.ok) {
+                        // Clear local data
+                        localStorage.removeItem("expense_tracker_auth");
+                        localStorage.removeItem('expense_tracker_settings');
+                        showNotification('Account deleted successfully', 'success');
+                        setTimeout(() => {
+                            window.location.href = 'auth.html';
+                        }, 2000);
+                    } else {
+                        throw new Error('Failed to delete account');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error deleting account:', error);
+                    showNotification('Failed to delete account', 'error');
+                });
+            }
+        }
+
+        // Logout
+        function logout() {
+            localStorage.removeItem("expense_tracker_auth");
+            currentUser = null;
+            window.location.href = 'auth.html';
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            const notification = document.getElementById('notification');
+            
+            notification.className = 'fixed top-4 right-4 p-4 rounded-lg shadow-xl z-50 transform transition-all duration-300 ease-in-out backdrop-blur-lg border border-white/20 min-w-[250px] max-w-[400px]';
+            
+            if (type === 'success') {
+                notification.classList.add('bg-green-500', 'text-white');
+            } else if (type === 'error') {
+                notification.classList.add('bg-red-500', 'text-white');
+            } else {
+                notification.classList.add('bg-blue-500', 'text-white');
+            }
+            
+            notification.textContent = message;
+            notification.classList.remove('hidden');
+            
+            notification.offsetHeight;
+            
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+                notification.style.opacity = '1';
+            }, 10);
+
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                notification.style.opacity = '0';
+                setTimeout(() => {
+                    notification.classList.add('hidden');
+                }, 300);
+            }, 3000);
+        }
+
+        // Page navigation
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+            
+            document.querySelectorAll('.glossy-nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            const activeBtn = document.querySelector(`[onclick="showPage('${pageId}')"]`);
+            if (activeBtn) {
+                activeBtn.classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>

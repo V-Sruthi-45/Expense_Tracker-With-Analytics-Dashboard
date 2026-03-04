@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OAuth Error - Expense Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .glossy-bg {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glossy-bg::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .glossy-card {
+            background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .glossy-button {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glossy-button:hover {
+            background: linear-gradient(145deg, #334155, #1e293b);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .glossy-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .glossy-button:hover::before {
+            left: 100%;
+        }
+    </style>
+</head>
+<body class="glossy-bg min-h-screen flex items-center justify-center">
+    <div class="relative z-10">
+        <div class="glossy-card rounded-2xl p-8 max-w-md w-full mx-4">
+            <div class="text-center">
+                <!-- Error Icon -->
+                <div class="mx-auto w-16 h-16 bg-red-500 rounded-full flex items-center justify-center mb-6">
+                    <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </div>
+                
+                <h1 class="text-2xl font-bold text-white mb-2">Login Failed</h1>
+                <p class="text-gray-300 mb-6">There was an error logging in with <span id="provider-name" class="font-semibold"></span></p>
+                
+                <!-- Error Details -->
+                <div class="bg-red-500/20 border border-red-500/50 rounded-lg p-4 mb-6">
+                    <p class="text-red-300 text-sm">Error details:</p>
+                    <p id="error-message" class="text-red-400 font-semibold"></p>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="space-y-3">
+                    <button onclick="goBack()" class="glossy-button w-full py-3 px-6 rounded-xl text-white font-semibold">
+                        Try Again
+                    </button>
+                    <button onclick="goToAuth()" class="w-full py-3 px-6 rounded-xl text-gray-300 font-semibold border border-gray-600 hover:bg-gray-800 transition">
+                        Back to Login
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const provider = urlParams.get('provider');
+        const error = urlParams.get('error');
+        
+        document.getElementById('provider-name').textContent = provider ? provider.charAt(0).toUpperCase() + provider.slice(1) : 'OAuth Provider';
+        document.getElementById('error-message').textContent = error || 'Unknown error occurred';
+        
+        function goBack() {
+            window.history.back();
+        }
+        
+        function goToAuth() {
+            window.location.href = 'auth.html';
+        }
+    </script>
+</body>
+</html>
