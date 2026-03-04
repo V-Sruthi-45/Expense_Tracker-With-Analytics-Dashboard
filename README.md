@@ -73,7 +73,7 @@ cp .env.example .env
 MONGODB_URI=mongodb://localhost:27017/expense-tracker
 JWT_SECRET=your-super-secret-jwt-key-here
 PORT=5000
-CLIENT_URL=http://localhost:3000
+CLIENT_URL=http://localhost:8080
 
 # Start the backend server
 npm run server
@@ -81,18 +81,12 @@ npm run server
 
 ### 3. Frontend Setup
 ```bash
-# Navigate to client directory
-cd client
-
-# Install frontend dependencies
-npm install
-
-# Start the React development server
-npm start
+# Start the frontend server (Python HTTP server)
+python -m http.server 8080
 ```
 
 ### 4. Access the Application
-- Frontend: http://localhost:3000
+- Frontend: http://localhost:8080
 - Backend API: http://localhost:5000
 - API Health Check: http://localhost:5000/api/health
 
