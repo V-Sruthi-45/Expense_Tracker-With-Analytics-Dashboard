@@ -193,28 +193,226 @@ app.get('/api/auth/oauth/google', (req, res) => {
   // Create a simple HTML page that simulates Google OAuth
   const mockOAuthPage = `
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Google OAuth Mock</title>
+        <script src="https://cdn.tailwindcss.com"></script>
         <style>
-            body { font-family: Arial, sans-serif; max-width: 400px; margin: 100px auto; padding: 20px; }
-            .btn { background: #4285f4; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; margin: 10px 0; }
-            .btn:hover { background: #357ae8; }
-            input { width: 100%; padding: 8px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; }
+            * {
+                color: white !important;
+            }
+            
+            body {
+                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+                min-height: 100vh;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            body::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+                pointer-events: none;
+            }
+            
+            .glass-card {
+                background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 
+                    0 8px 32px rgba(0, 0, 0, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .glass-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+                transition: left 0.5s;
+            }
+            
+            .glass-card:hover::before {
+                left: 100%;
+            }
+            
+            .google-btn {
+                background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: white !important;
+                padding: 14px 28px;
+                border-radius: 12px;
+                cursor: pointer;
+                margin: 10px 0;
+                font-size: 16px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                box-shadow: 
+                    0 4px 16px rgba(0, 0, 0, 0.2),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .google-btn:hover {
+                background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+                transform: translateY(-2px);
+                box-shadow: 
+                    0 8px 24px rgba(0, 0, 0, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            }
+            
+            .google-btn::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 0;
+                height: 0;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+                transition: width 0.6s, height 0.6s;
+            }
+            
+            .google-btn:active::after {
+                width: 300px;
+                height: 300px;
+            }
+            
+            .email-input {
+                background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: white !important;
+                width: 100%;
+                padding: 14px 16px;
+                border-radius: 12px;
+                font-size: 16px;
+                margin: 10px 0;
+                transition: all 0.3s ease;
+                box-shadow: 
+                    0 4px 16px rgba(0, 0, 0, 0.2),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            }
+            
+            .email-input::placeholder {
+                color: rgba(255, 255, 255, 0.6) !important;
+            }
+            
+            .email-input:focus {
+                outline: none;
+                border-color: rgba(255, 255, 255, 0.4);
+                box-shadow: 
+                    0 4px 16px rgba(0, 0, 0, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                    0 0 0 2px rgba(255, 255, 255, 0.1);
+            }
+            
+            h2, p, span, div {
+                color: white !important;
+            }
+            
+            .text-white { color: white !important; }
+            .text-gray-300 { color: rgba(255, 255, 255, 0.7) !important; }
+            .text-gray-500 { color: rgba(255, 255, 255, 0.5) !important; }
+            .text-gray-800 { color: white !important; }
+            .text-2xl { font-size: 1.5rem; }
+            .text-sm { font-size: 0.875rem; }
+            .font-bold { font-weight: 700; }
+            .mb-2 { margin-bottom: 0.5rem; }
+            .mb-4 { margin-bottom: 1rem; }
+            .mb-6 { margin-bottom: 1.5rem; }
+            .mt-6 { margin-top: 1.5rem; }
+            .mx-auto { margin-left: auto; margin-right: auto; }
+            .text-center { text-align: center; }
+            .w-12 { width: 3rem; }
+            .h-12 { height: 3rem; }
+            .w-5 { width: 1.25rem; }
+            .h-5 { height: 1.25rem; }
+            .mr-2 { margin-right: 0.5rem; }
+            .w-full { width: 100%; }
+            .max-w-md { max-width: 28rem; }
+            .rounded-2xl { border-radius: 1rem; }
+            .p-8 { padding: 2rem; }
+            .space-y-4 > * + * { margin-top: 1rem; }
+            .flex { display: flex; }
+            .items-center { align-items: center; }
+            .justify-center { justify-content: center; }
+            .min-h-screen { min-height: 100vh; }
+            .p-4 { padding: 1rem; }
         </style>
     </head>
     <body>
-        <h2>Google OAuth Mock</h2>
-        <p>Enter your Google email to continue:</p>
-        <input type="email" id="email" placeholder="your.email@gmail.com" value="sruthi.me2005@gmail.com">
-        <button class="btn" onclick="login()">Continue with Google</button>
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="glass-card rounded-2xl p-8 max-w-md w-full">
+                <!-- Google Logo -->
+                <div class="text-center mb-6">
+                    <svg class="w-12 h-12 mx-auto mb-4" viewBox="0 0 24 24">
+                        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"></path>
+                        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"></path>
+                        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"></path>
+                        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"></path>
+                    </svg>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Google OAuth Mock</h2>
+                    <p class="text-gray-600">Enter your Google email to continue:</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <input type="email" id="email" class="email-input" placeholder="your.email@gmail.com" value="sruthi.me2005@gmail.com">
+                    <button class="google-btn w-full" onclick="login()">
+                        <span class="flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"></path>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"></path>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"></path>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"></path>
+                            </svg>
+                            Continue with Google
+                        </span>
+                    </button>
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-gray-500">
+                        This is a mock OAuth page for testing purposes
+                    </p>
+                </div>
+            </div>
+        </div>
+        
         <script>
             function login() {
                 const email = document.getElementById('email').value;
                 if (email) {
+                    // Redirect back to auth-success page with mock data
                     window.location.href = 'http://localhost:8080/auth-success.html?provider=google&email=' + encodeURIComponent(email) + '&name=' + encodeURIComponent(email.split('@')[0]);
+                } else {
+                    alert('Please enter an email address');
                 }
             }
+            
+            // Allow Enter key to submit
+            document.getElementById('email').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
         </script>
     </body>
     </html>
@@ -230,28 +428,226 @@ app.get('/api/auth/oauth/microsoft', (req, res) => {
   // Create a simple HTML page that simulates Microsoft OAuth
   const mockOAuthPage = `
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Microsoft OAuth Mock</title>
+        <script src="https://cdn.tailwindcss.com"></script>
         <style>
-            body { font-family: Arial, sans-serif; max-width: 400px; margin: 100px auto; padding: 20px; }
-            .btn { background: #0078d4; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; margin: 10px 0; }
-            .btn:hover { background: #106ebe; }
-            input { width: 100%; padding: 8px; margin: 8px 0; border: 1px solid #ddd; border-radius: 4px; }
+            * {
+                color: white !important;
+            }
+            
+            body {
+                background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+                min-height: 100vh;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                position: relative;
+                overflow: hidden;
+            }
+            
+            body::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.05) 0%, transparent 50%);
+                pointer-events: none;
+            }
+            
+            .glass-card {
+                background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+                backdrop-filter: blur(20px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 
+                    0 8px 32px rgba(0, 0, 0, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .glass-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: -100%;
+                width: 100%;
+                height: 100%;
+                background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+                transition: left 0.5s;
+            }
+            
+            .glass-card:hover::before {
+                left: 100%;
+            }
+            
+            .microsoft-btn {
+                background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: white !important;
+                padding: 14px 28px;
+                border-radius: 12px;
+                cursor: pointer;
+                margin: 10px 0;
+                font-size: 16px;
+                font-weight: 500;
+                transition: all 0.3s ease;
+                box-shadow: 
+                    0 4px 16px rgba(0, 0, 0, 0.2),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                position: relative;
+                overflow: hidden;
+            }
+            
+            .microsoft-btn:hover {
+                background: linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.1));
+                transform: translateY(-2px);
+                box-shadow: 
+                    0 8px 24px rgba(0, 0, 0, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            }
+            
+            .microsoft-btn::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                width: 0;
+                height: 0;
+                background: rgba(255, 255, 255, 0.1);
+                border-radius: 50%;
+                transform: translate(-50%, -50%);
+                transition: width 0.6s, height 0.6s;
+            }
+            
+            .microsoft-btn:active::after {
+                width: 300px;
+                height: 300px;
+            }
+            
+            .email-input {
+                background: linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                color: white !important;
+                width: 100%;
+                padding: 14px 16px;
+                border-radius: 12px;
+                font-size: 16px;
+                margin: 10px 0;
+                transition: all 0.3s ease;
+                box-shadow: 
+                    0 4px 16px rgba(0, 0, 0, 0.2),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            }
+            
+            .email-input::placeholder {
+                color: rgba(255, 255, 255, 0.6) !important;
+            }
+            
+            .email-input:focus {
+                outline: none;
+                border-color: rgba(255, 255, 255, 0.4);
+                box-shadow: 
+                    0 4px 16px rgba(0, 0, 0, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                    0 0 0 2px rgba(255, 255, 255, 0.1);
+            }
+            
+            h2, p, span, div {
+                color: white !important;
+            }
+            
+            .text-white { color: white !important; }
+            .text-gray-300 { color: rgba(255, 255, 255, 0.7) !important; }
+            .text-gray-500 { color: rgba(255, 255, 255, 0.5) !important; }
+            .text-gray-800 { color: white !important; }
+            .text-2xl { font-size: 1.5rem; }
+            .text-sm { font-size: 0.875rem; }
+            .font-bold { font-weight: 700; }
+            .mb-2 { margin-bottom: 0.5rem; }
+            .mb-4 { margin-bottom: 1rem; }
+            .mb-6 { margin-bottom: 1.5rem; }
+            .mt-6 { margin-top: 1.5rem; }
+            .mx-auto { margin-left: auto; margin-right: auto; }
+            .text-center { text-align: center; }
+            .w-12 { width: 3rem; }
+            .h-12 { height: 3rem; }
+            .w-5 { width: 1.25rem; }
+            .h-5 { height: 1.25rem; }
+            .mr-2 { margin-right: 0.5rem; }
+            .w-full { width: 100%; }
+            .max-w-md { max-width: 28rem; }
+            .rounded-2xl { border-radius: 1rem; }
+            .p-8 { padding: 2rem; }
+            .space-y-4 > * + * { margin-top: 1rem; }
+            .flex { display: flex; }
+            .items-center { align-items: center; }
+            .justify-center { justify-content: center; }
+            .min-h-screen { min-height: 100vh; }
+            .p-4 { padding: 1rem; }
         </style>
     </head>
     <body>
-        <h2>Microsoft OAuth Mock</h2>
-        <p>Enter your Microsoft email to continue:</p>
-        <input type="email" id="email" placeholder="your.email@outlook.com">
-        <button class="btn" onclick="login()">Continue with Microsoft</button>
+        <div class="min-h-screen flex items-center justify-center p-4">
+            <div class="glass-card rounded-2xl p-8 max-w-md w-full">
+                <!-- Microsoft Logo -->
+                <div class="text-center mb-6">
+                    <svg class="w-12 h-12 mx-auto mb-4" viewBox="0 0 24 24">
+                        <path fill="#F3F2F1" d="M11.4 10.8H0v2.4h11.4V24h2.4V13.2H24v-2.4H13.8V0h-2.4v10.8z"></path>
+                        <path fill="#00A4EF" d="M11.4 13.2H0V24h11.4V13.2z"></path>
+                        <path fill="#0078D4" d="M13.8 0v10.8H24V0h-10.2z"></path>
+                        <path fill="#00BCF2" d="M13.8 13.2H24V24H13.8V13.2z"></path>
+                    </svg>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Microsoft OAuth Mock</h2>
+                    <p class="text-gray-600">Enter your Microsoft email to continue:</p>
+                </div>
+                
+                <div class="space-y-4">
+                    <input type="email" id="email" class="email-input" placeholder="your.email@outlook.com" value="user@outlook.com">
+                    <button class="microsoft-btn w-full" onclick="login()">
+                        <span class="flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" viewBox="0 0 24 24">
+                                <path fill="#F3F2F1" d="M11.4 10.8H0v2.4h11.4V24h2.4V13.2H24v-2.4H13.8V0h-2.4v10.8z"></path>
+                                <path fill="#00A4EF" d="M11.4 13.2H0V24h11.4V13.2z"></path>
+                                <path fill="#0078D4" d="M13.8 0v10.8H24V0h-10.2z"></path>
+                                <path fill="#00BCF2" d="M13.8 13.2H24V24H13.8V13.2z"></path>
+                            </svg>
+                            Continue with Microsoft
+                        </span>
+                    </button>
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-gray-500">
+                        This is a mock OAuth page for testing purposes
+                    </p>
+                </div>
+            </div>
+        </div>
+        
         <script>
             function login() {
                 const email = document.getElementById('email').value;
                 if (email) {
+                    // Redirect back to auth-success page with mock data
                     window.location.href = 'http://localhost:8080/auth-success.html?provider=microsoft&email=' + encodeURIComponent(email) + '&name=' + encodeURIComponent(email.split('@')[0]);
+                } else {
+                    alert('Please enter an email address');
                 }
             }
+            
+            // Allow Enter key to submit
+            document.getElementById('email').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    login();
+                }
+            });
         </script>
     </body>
     </html>
